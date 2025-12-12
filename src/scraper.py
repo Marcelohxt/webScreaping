@@ -46,12 +46,22 @@ class WebScraper:
                     options.add_argument('--disable-dev-shm-usage')
                     options.add_argument('--window-size=1920,1080')
                     
-                    self.driver = uc.Chrome(options=options, version_main=None)
+                    # Tenta inicializar com diferentes métodos
+                    try:
+                        self.driver = uc.Chrome(options=options, version_main=None, use_subprocess=True)
+                    except:
+                        try:
+                            self.driver = uc.Chrome(options=options, version_main=None)
+                        except Exception as e2:
+                            logger.warning(f"Erro ao inicializar undetected-chromedriver: {e2}")
+                            raise
+                    
                     self.driver.implicitly_wait(SELENIUM_WAIT_TIME)
-                    logger.info(f"undetected-chromedriver inicializado (headless={SELENIUM_HEADLESS})")
+                    logger.info(f"undetected-chromedriver inicializado com sucesso (headless={SELENIUM_HEADLESS})")
                     return
-                except ImportError:
-                    logger.warning("undetected-chromedriver não instalado. Execute: pip install undetected-chromedriver")
+                except ImportError as e:
+                    logger.warning(f"undetected-chromedriver não instalado: {e}")
+                    logger.info("Execute: pip install undetected-chromedriver")
                     logger.info("Usando Selenium padrão...")
                 except Exception as e:
                     logger.warning(f"Erro ao inicializar undetected-chromedriver: {e}")

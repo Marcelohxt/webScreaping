@@ -61,7 +61,7 @@ SELECTORS = {
 # IMPORTANTE: O site Utimix bloqueia requisições HTTP normais (403)
 # Para fazer scraping, é necessário usar Selenium com undetected-chromedriver:
 USE_SELENIUM = True  # Mude para True para usar Selenium
-USE_UNDETECTED_CHROMEDRIVER = True  # Usa undetected-chromedriver (recomendado para sites com proteção anti-bot)
+USE_UNDETECTED_CHROMEDRIVER = False  # Usa undetected-chromedriver (desabilitado - incompatível com Python 3.14)
 SELENIUM_DRIVER = "chrome"  # "chrome" ou "firefox"
 SELENIUM_HEADLESS = False  # True = sem abrir navegador (pode não funcionar em alguns sites)
 SELENIUM_WAIT_TIME = 10  # Tempo de espera em segundos
