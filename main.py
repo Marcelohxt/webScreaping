@@ -64,8 +64,8 @@ def main():
         # ============================================
         category_urls = [
             # Exemplo:
-            # "https://exemplo.com/categoria1",
-            # "https://exemplo.com/categoria2",
+            # "https://www.utimix.com/",
+            # "https://www.utimix.com/",
         ]
         
         if not category_urls:

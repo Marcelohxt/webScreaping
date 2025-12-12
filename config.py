@@ -15,7 +15,7 @@ IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 PLANILHAS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Configurações de scraping
-BASE_URL = ""  # URL base do site (definir conforme necessário)
+BASE_URL = "https://www.utimix.com"  # URL base do site Utimix
 DELAY_BETWEEN_REQUESTS = 2  # Delay em segundos entre requisições
 MAX_RETRIES = 3  # Número máximo de tentativas em caso de falha
 TIMEOUT = 30  # Timeout para requisições em segundos
@@ -45,20 +45,24 @@ SHEET_NAME = "Produtos"
 LOG_LEVEL = "INFO"
 LOG_FILE = "scraping.log"
 
-# Seletores CSS (ajustar conforme o site)
+# Seletores CSS (ajustar conforme o site Utimix)
+# Execute: python inspect_selectors.py para ajudar a identificar os seletores
 SELECTORS = {
-    'product_container': '',  # Seletor do container de produtos
-    'product_name': '',       # Seletor do nome do produto
-    'product_price': '',      # Seletor do preço
-    'product_image': '',      # Seletor da imagem
-    'product_category': '',   # Seletor da categoria
-    'product_link': '',       # Seletor do link do produto
-    'next_page': '',          # Seletor do botão "próxima página"
+    'product_container': '',  # Seletor do container de produtos (ex: '.product-item', '.woocommerce li.product')
+    'product_name': '',       # Seletor do nome do produto (ex: 'h2.woocommerce-loop-product__title', '.product-title')
+    'product_price': '',      # Seletor do preço (ex: '.price', '.woocommerce-Price-amount')
+    'product_image': '',      # Seletor da imagem (ex: 'img.attachment-woocommerce_thumbnail', '.product-image img')
+    'product_category': '',   # Seletor da categoria (ex: '.product-category', 'nav.breadcrumb')
+    'product_link': '',       # Seletor do link do produto (ex: 'a.woocommerce-LoopProduct-link', 'a.product-link')
+    'next_page': '',          # Seletor do botão "próxima página" (ex: 'a.next', '.pagination .next')
 }
 
 # Configurações de Selenium (se necessário)
-USE_SELENIUM = False
+# IMPORTANTE: O site Utimix bloqueia requisições HTTP normais (403)
+# Para fazer scraping, é necessário usar Selenium com undetected-chromedriver:
+USE_SELENIUM = True  # Mude para True para usar Selenium
+USE_UNDETECTED_CHROMEDRIVER = True  # Usa undetected-chromedriver (recomendado para sites com proteção anti-bot)
 SELENIUM_DRIVER = "chrome"  # "chrome" ou "firefox"
-SELENIUM_HEADLESS = True
-SELENIUM_WAIT_TIME = 10
+SELENIUM_HEADLESS = False  # True = sem abrir navegador (pode não funcionar em alguns sites)
+SELENIUM_WAIT_TIME = 10  # Tempo de espera em segundos
 

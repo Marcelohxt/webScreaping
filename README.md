@@ -1,6 +1,8 @@
 # Web Scraping - Produtos de Utilidade Doméstica
 
-Projeto de web scraping para coletar produtos de sites de utilidade doméstica, baixar imagens organizadas por categoria e gerar planilhas com os dados coletados.
+Projeto de web scraping para coletar produtos do site **Utimix.com** (https://www.utimix.com/), baixar imagens organizadas por categoria e gerar planilhas com os dados coletados.
+
+> 📖 **Guia Específico**: Consulte o arquivo [GUIA_UTIMIX.md](GUIA_UTIMIX.md) para instruções detalhadas de configuração.
 
 ## 📋 Funcionalidades
 
@@ -32,9 +34,17 @@ Edite `config.py` e defina a URL base do site:
 BASE_URL = "https://exemplo.com"
 ```
 
-### 2. Configurar Seletores CSS
+### 2. Identificar Seletores CSS (IMPORTANTE)
 
-No arquivo `config.py`, configure os seletores CSS para extrair os dados:
+**Opção 1 - Script Automático:**
+```bash
+python inspect_selectors.py
+```
+
+**Opção 2 - Manual:**
+Use o DevTools do navegador (F12) para inspecionar os elementos HTML.
+
+Depois, no arquivo `config.py`, configure os seletores CSS encontrados:
 
 ```python
 SELECTORS = {

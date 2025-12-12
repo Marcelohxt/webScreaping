@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from config import (
     BASE_URL, DELAY_BETWEEN_REQUESTS, SELECTORS, 
-    USE_SELENIUM, SELENIUM_HEADLESS, SELENIUM_WAIT_TIME
+    USE_SELENIUM, USE_UNDETECTED_CHROMEDRIVER, SELENIUM_HEADLESS, SELENIUM_WAIT_TIME, SELENIUM_DRIVER
 )
 from src.utils import (
     safe_request, build_absolute_url, clean_text, 
@@ -24,6 +24,168 @@ class WebScraper:
         self.base_url = base_url or BASE_URL
         self.session = None
         self.products = []
+        self.driver = None
+        
+        # Inicializa Selenium se necessário
+        if USE_SELENIUM:
+            self._init_selenium()
+    
+    def _init_selenium(self):
+        """Inicializa driver do Selenium"""
+        try:
+            # Tenta usar undetected-chromedriver primeiro (mais eficaz contra anti-bot)
+            if USE_UNDETECTED_CHROMEDRIVER and SELENIUM_DRIVER.lower() == "chrome":
+                try:
+                    import undetected_chromedriver as uc
+                    logger.info("Usando undetected-chromedriver (mais eficaz contra proteções anti-bot)")
+                    
+                    options = uc.ChromeOptions()
+                    if SELENIUM_HEADLESS:
+                        options.add_argument('--headless=new')
+                    options.add_argument('--no-sandbox')
+                    options.add_argument('--disable-dev-shm-usage')
+                    options.add_argument('--window-size=1920,1080')
+                    
+                    self.driver = uc.Chrome(options=options, version_main=None)
+                    self.driver.implicitly_wait(SELENIUM_WAIT_TIME)
+                    logger.info(f"undetected-chromedriver inicializado (headless={SELENIUM_HEADLESS})")
+                    return
+                except ImportError:
+                    logger.warning("undetected-chromedriver não instalado. Execute: pip install undetected-chromedriver")
+                    logger.info("Usando Selenium padrão...")
+                except Exception as e:
+                    logger.warning(f"Erro ao inicializar undetected-chromedriver: {e}")
+                    logger.info("Tentando com Selenium padrão...")
+            
+            # Usa Selenium padrão
+            from selenium import webdriver
+            from selenium.webdriver.chrome.options import Options as ChromeOptions
+            from selenium.webdriver.firefox.options import Options as FirefoxOptions
+            
+            # Tenta usar webdriver-manager se disponível
+            try:
+                from webdriver_manager.chrome import ChromeDriverManager
+                from webdriver_manager.firefox import GeckoDriverManager
+                USE_WEBDRIVER_MANAGER = True
+            except ImportError:
+                USE_WEBDRIVER_MANAGER = False
+                logger.info("webdriver-manager não instalado. Usando ChromeDriver do sistema.")
+            
+            if SELENIUM_DRIVER.lower() == "chrome":
+                options = ChromeOptions()
+                if SELENIUM_HEADLESS:
+                    options.add_argument('--headless=new')  # Novo modo headless
+                options.add_argument('--no-sandbox')
+                options.add_argument('--disable-dev-shm-usage')
+                options.add_argument('--disable-blink-features=AutomationControlled')
+                options.add_argument('--disable-gpu')
+                options.add_argument('--window-size=1920,1080')
+                options.add_experimental_option("excludeSwitches", ["enable-automation"])
+                options.add_experimental_option('useAutomationExtension', False)
+                options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+                
+                # Prefs para parecer mais com navegador real
+                prefs = {
+                    "credentials_enable_service": False,
+                    "profile.password_manager_enabled": False
+                }
+                options.add_experimental_option("prefs", prefs)
+                
+                try:
+                    if USE_WEBDRIVER_MANAGER:
+                        from selenium.webdriver.chrome.service import Service
+                        service = Service(ChromeDriverManager().install())
+                        self.driver = webdriver.Chrome(service=service, options=options)
+                    else:
+                        self.driver = webdriver.Chrome(options=options)
+                except Exception as e:
+                    logger.error(f"Erro ao iniciar Chrome: {e}")
+                    logger.info("Instale o ChromeDriver ou execute: pip install webdriver-manager")
+                    return
+                    
+            elif SELENIUM_DRIVER.lower() == "firefox":
+                options = FirefoxOptions()
+                if SELENIUM_HEADLESS:
+                    options.add_argument('--headless')
+                
+                try:
+                    if USE_WEBDRIVER_MANAGER:
+                        from selenium.webdriver.firefox.service import Service
+                        service = Service(GeckoDriverManager().install())
+                        self.driver = webdriver.Firefox(service=service, options=options)
+                    else:
+                        self.driver = webdriver.Firefox(options=options)
+                except Exception as e:
+                    logger.error(f"Erro ao iniciar Firefox: {e}")
+                    logger.info("Instale o GeckoDriver ou execute: pip install webdriver-manager")
+                    return
+            else:
+                logger.error(f"Driver {SELENIUM_DRIVER} não suportado. Use 'chrome' ou 'firefox'")
+                return
+                
+            if self.driver:
+                self.driver.implicitly_wait(SELENIUM_WAIT_TIME)
+                logger.info(f"Selenium inicializado com {SELENIUM_DRIVER} (headless={SELENIUM_HEADLESS})")
+                
+        except ImportError:
+            logger.error("Selenium não instalado. Execute: pip install selenium")
+            logger.info("Para usar requisições normais, defina USE_SELENIUM = False em config.py")
+        except Exception as e:
+            logger.error(f"Erro ao inicializar Selenium: {e}")
+    
+    def _get_page_selenium(self, url: str) -> Optional[str]:
+        """Obtém HTML usando Selenium"""
+        if not self.driver:
+            logger.error("Driver Selenium não inicializado")
+            return None
+        
+        try:
+            # Executa script para remover indicadores de automação
+            self.driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
+                'source': '''
+                    Object.defineProperty(navigator, 'webdriver', {
+                        get: () => undefined
+                    });
+                    window.navigator.chrome = {
+                        runtime: {},
+                    };
+                    Object.defineProperty(navigator, 'plugins', {
+                        get: () => [1, 2, 3, 4, 5],
+                    });
+                '''
+            })
+            
+            self.driver.get(url)
+            
+            # Aguarda o carregamento completo da página
+            time.sleep(5)  # Aguarda JavaScript carregar
+            
+            # Tenta aguardar até que algum elemento da página esteja presente
+            try:
+                from selenium.webdriver.support.ui import WebDriverWait
+                from selenium.webdriver.support import expected_conditions as EC
+                from selenium.webdriver.common.by import By
+                
+                # Aguarda até que o body esteja presente (mínimo 30 segundos)
+                WebDriverWait(self.driver, 30).until(
+                    EC.presence_of_element_located((By.TAG_NAME, "body"))
+                )
+            except:
+                pass  # Se não conseguir esperar, continua mesmo assim
+            
+            # Verifica se a página carregou corretamente (não é página de erro)
+            page_source = self.driver.page_source
+            
+            # Se ainda retornar 403, tenta mais uma vez com delay maior
+            if "403" in page_source and "Forbidden" in page_source:
+                logger.warning("Página ainda retorna 403. Tentando aguardar mais tempo...")
+                time.sleep(10)
+                page_source = self.driver.page_source
+            
+            return page_source
+        except Exception as e:
+            logger.error(f"Erro ao acessar {url} com Selenium: {e}")
+            return None
         
     def get_page(self, url: str) -> Optional[BeautifulSoup]:
         """
@@ -37,16 +199,39 @@ class WebScraper:
         """
         url = build_absolute_url(self.base_url, url)
         
-        response = safe_request(url)
-        if not response:
+        html_content = None
+        
+        if USE_SELENIUM and self.driver:
+            # Usa Selenium
+            html_content = self._get_page_selenium(url)
+        else:
+            # Usa requisição HTTP normal
+            response = safe_request(url)
+            if response:
+                html_content = response.content
+            else:
+                # Se falhar e Selenium não estiver habilitado, sugere usar Selenium
+                if not USE_SELENIUM:
+                    logger.warning(f"Falha ao acessar {url}. O site pode requerer JavaScript.")
+                    logger.info("Considere habilitar Selenium em config.py: USE_SELENIUM = True")
+        
+        if not html_content:
             return None
         
         try:
-            soup = BeautifulSoup(response.content, 'lxml')
+            soup = BeautifulSoup(html_content, 'lxml')
             return soup
         except Exception as e:
             logger.error(f"Erro ao fazer parse da página {url}: {e}")
             return None
+    
+    def __del__(self):
+        """Fecha driver do Selenium ao destruir objeto"""
+        if self.driver:
+            try:
+                self.driver.quit()
+            except:
+                pass
     
     def extract_product_info(self, product_element, base_url: str = "") -> Dict:
         """
