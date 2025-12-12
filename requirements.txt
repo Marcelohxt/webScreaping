@@ -1,0 +1,42 @@
+# Web Scraping
+requests==2.31.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+selenium==4.15.2
+aiohttp==3.9.1
+httpx==0.25.2
+
+# Download e processamento de imagens
+Pillow==10.1.0
+requests-file==1.5.1
+
+# Manipulação de dados e planilhas
+pandas==2.1.4
+openpyxl==3.1.2
+xlsxwriter==3.1.9
+
+# Parsing e validação
+html5lib==1.1
+cssselect==1.2.0
+
+# Utilitários
+python-dotenv==1.0.0
+tqdm==4.66.1
+colorama==0.4.6
+
+# Logging e configuração
+loguru==0.7.2
+
+# Headers e user agents
+fake-useragent==1.4.0
+user-agents==2.2.0
+
+# Rate limiting e controle de requisições
+ratelimit==2.2.1
+tenacity==8.2.3
+
+# Validação de dados
+validators==0.22.0
+
+# Utilitários de sistema
+pathlib2==2.3.7.post1; python_version < '3.4'
