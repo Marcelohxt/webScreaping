@@ -48,13 +48,13 @@ LOG_FILE = "scraping.log"
 # Seletores CSS (ajustar conforme o site Utimix)
 # Execute: python inspect_selectors.py para ajudar a identificar os seletores
 SELECTORS = {
-    'product_container': '',  # Seletor do container de produtos (ex: '.product-item', '.woocommerce li.product')
-    'product_name': '',       # Seletor do nome do produto (ex: 'h2.woocommerce-loop-product__title', '.product-title')
-    'product_price': '',      # Seletor do preço (ex: '.price', '.woocommerce-Price-amount')
-    'product_image': '',      # Seletor da imagem (ex: 'img.attachment-woocommerce_thumbnail', '.product-image img')
-    'product_category': '',   # Seletor da categoria (ex: '.product-category', 'nav.breadcrumb')
-    'product_link': '',       # Seletor do link do produto (ex: 'a.woocommerce-LoopProduct-link', 'a.product-link')
-    'next_page': '',          # Seletor do botão "próxima página" (ex: 'a.next', '.pagination .next')
+    'product_container': 'li.product',  # Container de cada produto (WooCommerce)
+    'product_name': 'h2.woocommerce-loop-product__title',  # Nome do produto (padrão WooCommerce)
+    'product_price': '.price .woocommerce-Price-amount',  # Preço (padrão WooCommerce)
+    'product_image': 'img.attachment-woocommerce_thumbnail',  # Imagem do produto
+    'product_category': '.woocommerce-breadcrumb',  # Categoria (breadcrumb)
+    'product_link': 'a.woocommerce-LoopProduct-link',  # Link do produto (padrão WooCommerce)
+    'next_page': 'a.next.page-numbers',  # Botão próxima página (padrão WooCommerce)
 }
 
 # Configurações de Selenium (se necessário)

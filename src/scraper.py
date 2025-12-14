@@ -189,8 +189,24 @@ class WebScraper:
             # Se ainda retornar 403, tenta mais uma vez com delay maior
             if "403" in page_source and "Forbidden" in page_source:
                 logger.warning("Página ainda retorna 403. Tentando aguardar mais tempo...")
-                time.sleep(10)
-                page_source = self.driver.page_source
+                time.sleep(15)  # Aguarda mais tempo
+                
+                # Tenta recarregar a página
+                try:
+                    self.driver.refresh()
+                    time.sleep(10)
+                    page_source = self.driver.page_source
+                except:
+                    pass
+                
+                # Se ainda estiver bloqueado, retorna None para pular esta URL
+                if "403" in page_source and "Forbidden" in page_source:
+                    logger.error(f"❌ Acesso bloqueado (403) para {url}")
+                    logger.info("💡 O site está bloqueando acesso automatizado. Possíveis soluções:")
+                    logger.info("   1. Use navegador manual e salve o HTML")
+                    logger.info("   2. Aguarde alguns minutos e tente novamente")
+                    logger.info("   3. Verifique se precisa fazer login no site")
+                    return None  # Retorna None para pular esta URL
             
             return page_source
         except Exception as e:

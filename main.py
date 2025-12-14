@@ -62,11 +62,29 @@ def main():
         # ============================================
         # CONFIGURAR AQUI: URLs das categorias para fazer scraping
         # ============================================
+        # INSTRUÇÕES:
+        # 1. Acesse https://www.utimix.com/ no navegador
+        # 2. Navegue até uma categoria com produtos
+        # 3. Copie a URL da barra de endereço
+        # 4. Cole abaixo (removendo o # e substituindo pela URL real)
+        
         category_urls = [
-            # Exemplo:
-            # "https://www.utimix.com/",
-            # "https://www.utimix.com/",
+            # URLs das categorias para fazer scraping
+            "https://www.utimix.com/produtos/",
+            "https://www.utimix.com/categoria/casa-e-cozinha/",
+            "https://www.utimix.com/categoria/eletronicos/",
+            "https://www.utimix.com/categoria/saude-e-beleza/",
+            "https://www.utimix.com/categoria/beleza-e-perfumaria/",
+            "https://www.utimix.com/categoria/esporte-lazer/",
+            "https://www.utimix.com/categoria/presentes/",
+            "https://www.utimix.com/categoria/brinquedos-fidgets/",
+            "https://www.utimix.com/categoria/pet-shop/",
+            "https://www.utimix.com/categoria/sazonal/natal/",
+            "https://www.utimix.com/novidades/",
         ]
+        
+        # Filtra apenas URLs válidas (não comentadas)
+        category_urls = [url.strip() for url in category_urls if url.strip() and not url.strip().startswith('#')]
         
         if not category_urls:
             logger.warning("Nenhuma categoria configurada!")
